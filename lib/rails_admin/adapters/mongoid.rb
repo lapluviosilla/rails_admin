@@ -142,6 +142,10 @@ module RailsAdmin
                        :float
                      when "Array"
                        :string
+                    when "Date"
+                       :datetime
+                     when "BSON::ObjectId"
+                       :object_id
                      else
                        raise "Need to map field #{field.type.to_s} for field name #{name} in #{model.inspect}"
                      end

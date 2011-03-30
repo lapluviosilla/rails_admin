@@ -10,10 +10,6 @@ module RailsAdmin
       @page_name = t("admin.dashboard.pagename")
       @page_type = "dashboard"
 
-      @history = AbstractHistory.history_latest_summaries
-      # history listing with ref = 0 and section = 4
-      @historyListing, @current_month = AbstractHistory.history_for_month(0, 4)
-
       @abstract_models = RailsAdmin::AbstractModel.all
 
       @most_recent_changes = {}
@@ -23,7 +19,6 @@ module RailsAdmin
         current_count = t.count
         @max = current_count > @max ? current_count : @max
         @count[t.pretty_name] = current_count
-        @most_recent_changes[t.pretty_name] = AbstractHistory.most_recent_history(t.pretty_name).last.try(:updated_at)
       end
 
       render :layout => 'rails_admin/dashboard'
@@ -56,7 +51,6 @@ module RailsAdmin
       @page_type = @abstract_model.pretty_name.downcase
 
       if @object.save
-        AbstractHistory.create_history_item("Created #{@model_config.list.with(:object => @object).object_label}", @object, @abstract_model, _current_user)
         redirect_to_on_success
       else
         render_error
@@ -82,7 +76,6 @@ module RailsAdmin
       @object.associations = params[:associations]
 
       if @object.save
-        AbstractHistory.create_update_history @abstract_model, @object, @cached_assocations_hash, associations_hash, @modified_assoc, @old_object, _current_user
         redirect_to_on_success
       else
         render_error :edit
@@ -100,7 +93,6 @@ module RailsAdmin
       @object = @object.destroy
       flash[:notice] = t("admin.delete.flash_confirmation", :name => @model_config.list.label)
 
-      AbstractHistory.create_history_item("Destroyed #{@model_config.list.with(:object => @object).object_label}", @object, @abstract_model, _current_user)
 
       redirect_to rails_admin_list_path(:model_name => @abstract_model.to_param)
     end
@@ -117,7 +109,6 @@ module RailsAdmin
 
       @destroyed_objects.each do |object|
         message = "Destroyed #{@model_config.list.with(:object => object).object_label}"
-        AbstractHistory.create_history_item(message, object, @abstract_model, _current_user)
       end
 
       redirect_to rails_admin_list_path(:model_name => @abstract_model.to_param)
