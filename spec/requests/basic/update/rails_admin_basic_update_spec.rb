@@ -9,9 +9,9 @@ describe "RailsAdmin Basic Update" do
     end
 
     it "should return to edit page" do
-      fill_in "players[name]", :with => ""
+      fill_in "player[name]", :with => ""
       res = click_button "Save"
-      res.should be_successful
+      res.response_code.should eql(406)
       res.should have_tag "form", :action => "/admin/players/#{@player.id}"
     end
   end
@@ -20,10 +20,10 @@ describe "RailsAdmin Basic Update" do
     before(:each) do
       @player = RailsAdmin::AbstractModel.new("Player").create(:team_id => rand(99999), :number => 1, :name => "Player 1")
       get rails_admin_edit_path(:model_name => "player", :id => @player.id)
-      fill_in "players[name]", :with => "Jackie Robinson"
-      fill_in "players[number]", :with => "42"
-      fill_in "players[position]", :with => "Second baseman"
-      check "players[suspended]"
+      fill_in "player[name]", :with => "Jackie Robinson"
+      fill_in "player[number]", :with => "42"
+      fill_in "player[position]", :with => "Second baseman"
+      check "player[suspended]"
 
       @req = click_button "Save"
       @player = RailsAdmin::AbstractModel.new("Player").first
@@ -46,10 +46,10 @@ describe "RailsAdmin Basic Update" do
       @player = RailsAdmin::AbstractModel.new("Player").create(:team_id => rand(99999), :number => 1, :name => "Player 1")
       get rails_admin_edit_path(:model_name => "player", :id => @player.id)
 
-      fill_in "players[name]", :with => "Jackie Robinson"
-      fill_in "players[number]", :with => "42"
-      fill_in "players[position]", :with => "Second baseman"
-      check "players[suspended]"
+      fill_in "player[name]", :with => "Jackie Robinson"
+      fill_in "player[number]", :with => "42"
+      fill_in "player[position]", :with => "Second baseman"
+      check "player[suspended]"
 
       @req = click_button "Save and edit"
       @player = RailsAdmin::AbstractModel.new("Player").first
@@ -74,9 +74,9 @@ describe "RailsAdmin Basic Update" do
 
       get rails_admin_edit_path(:model_name => "player", :id => @player.id)
 
-      fill_in "players[name]", :with => "Jackie Robinson"
-      fill_in "players[number]", :with => "42"
-      fill_in "players[position]", :with => "Second baseman"
+      fill_in "player[name]", :with => "Jackie Robinson"
+      fill_in "player[number]", :with => "42"
+      fill_in "player[position]", :with => "Second baseman"
 
       select "Draft ##{@draft.id}"
 
@@ -101,16 +101,16 @@ describe "RailsAdmin Basic Update" do
     before(:each) do
       @league = RailsAdmin::AbstractModel.new("League").create(:name => "League 1")
 
-      @teams = []
+      @divisions = []
       (1..3).each do |number|
-        @teams << RailsAdmin::AbstractModel.new("Team").create(:league_id => rand(99999), :division_id => rand(99999), :name => "Team #{number}", :manager => "Manager #{number}", :founded => 1869 + rand(130), :wins => (wins = rand(163)), :losses => 162 - wins, :win_percentage => ("%.3f" % (wins.to_f / 162)).to_f)
+        @divisions << RailsAdmin::AbstractModel.new("Division").create(:league_id => rand(99999), :name => "Division #{number}")
       end
 
       get rails_admin_edit_path(:model_name => "league", :id => @league.id)
 
-      fill_in "leagues[name]", :with => "National League"
+      fill_in "league[name]", :with => "National League"
 
-      set_hidden_field "associations[teams][]", :to => @teams[0].id.to_s.to_i
+      select @divisions[0].name, :from => "associations_divisions"
 
       response = click_button "Save"
       @league = RailsAdmin::AbstractModel.new("League").first
@@ -122,34 +122,34 @@ describe "RailsAdmin Basic Update" do
     end
 
     it "should update an object with correct associations" do
-      @teams[0].reload
-      @league.teams.should include(@teams[0])
+      @divisions[0].reload
+      @league.divisions.should include(@divisions[0])
     end
 
     it "should not update an object with incorrect associations" do
-      @league.teams.should_not include(@teams[1])
-      @league.teams.should_not include(@teams[2])
+      @league.divisions.should_not include(@divisions[1])
+      @league.divisions.should_not include(@divisions[2])
     end
 
     it "should log a history message about the update" do
-      @histories.collect(&:message).should include("Added Teams ##{@teams[0].id} associations, Changed name")
+      @histories.collect(&:message).should include("Added Divisions ##{@divisions[0].id} associations, Changed name")
     end
 
     describe "removing has-many associations" do
       before(:each) do
         get rails_admin_edit_path(:model_name => "league", :id => @league.id)
-        set_hidden_field "associations[teams][]", :to => nil
+        unselect @divisions[0].name, :from => "associations_divisions"
         response = click_button "Save"
         @league = RailsAdmin::AbstractModel.new("League").first
         @histories.reload
       end
 
       it "should have empty associations" do
-        @league.teams.should be_empty
+        @league.divisions.should be_empty
       end
 
       it "should log a message to history about removing associations" do
-        @histories.collect(&:message).should include("Removed Teams ##{@teams[0].id} associations")
+        @histories.collect(&:message).should include("Removed Divisions ##{@divisions[0].id} associations")
       end
     end
   end
@@ -157,14 +157,14 @@ describe "RailsAdmin Basic Update" do
   describe "update with has-and-belongs-to-many association" do
     before(:each) do
       @teams = (1..3).collect do |number|
-        RailsAdmin::AbstractModel.new("Team").create(:league_id => rand(99999), :division_id => rand(99999), :name => "Team #{number}", :manager => "Manager #{number}", :founded => 1869 + rand(130), :wins => (wins = rand(163)), :losses => 162 - wins, :win_percentage => ("%.3f" % (wins.to_f / 162)).to_f)
+        RailsAdmin::AbstractModel.new("Team").create(:division_id => rand(99999), :name => "Team #{number}", :manager => "Manager #{number}", :founded => 1869 + rand(130), :wins => (wins = rand(163)), :losses => 162 - wins, :win_percentage => ("%.3f" % (wins.to_f / 162)).to_f)
       end
 
       @fan = RailsAdmin::AbstractModel.new("Fan").create(:name => "Fan 1")
       @fan.teams << @teams[0]
 
       get rails_admin_edit_path(:model_name => "fan", :id => @fan.id)
-      set_hidden_field "associations[teams][]", :to => @teams[1].id.to_s.to_i
+      select @teams[1].name, :from => "associations_teams"
       response = click_button "Save"
     end
 
@@ -193,9 +193,9 @@ describe "RailsAdmin Basic Update" do
       @player = RailsAdmin::AbstractModel.new("Player").create(:team_id => rand(99999), :number => 1, :name => "Player 1")
       get rails_admin_edit_path(:model_name => "player", :id => @player.id)
 
-      fill_in "players[name]", :with => "Jackie Robinson"
-      fill_in "players[number]", :with => "a"
-      fill_in "players[position]", :with => "Second baseman"
+      fill_in "player[name]", :with => "Jackie Robinson"
+      fill_in "player[number]", :with => "a"
+      fill_in "player[position]", :with => "Second baseman"
       @req = click_button "Save"
       @player = RailsAdmin::AbstractModel.new("Player").first
     end
@@ -212,7 +212,7 @@ describe "RailsAdmin Basic Update" do
         :password => "test1234",
         :password_confirmation => 'test1234')
       get rails_admin_edit_path(:model_name => "user", :id => @user.id)
-      fill_in "users[roles]", :with => "[\"admin\", \"user\"]"
+      fill_in "user[roles]", :with => "[\"admin\", \"user\"]"
       @req = click_button "Save"
       @user = RailsAdmin::AbstractModel.new("User").model.find(@user.id)
     end

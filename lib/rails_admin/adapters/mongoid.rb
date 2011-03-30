@@ -18,7 +18,7 @@ module RailsAdmin
       end
 
       def get(id)
-        if object = model.where(:_id=>BSON::ObjectId(id)).first
+        if object = model.where(:_id=>id).first
           RailsAdmin::Adapters::AbstractObjectMongoid.new object
         else
           nil

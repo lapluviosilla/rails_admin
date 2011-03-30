@@ -4,6 +4,7 @@
 *.swp
 .DS_Store
 .bundle
+.idea
 .rvmrc
 .yardoc
 Gemfile.lock
@@ -19,3 +20,4 @@ spec/dummy_app/db/schema.rb
 spec/dummy_app/log/*.log
 tmp/**/*
 /.emacs.desktop
+.idea/*.xml

@@ -14,7 +14,7 @@ group :development, :test do
     when 'postgresql'
       gem 'activerecord-jdbcpostgresql-adapter', '~> 1.1', :platform => :jruby
       gem 'jdbc-postgres', '~> 9.0', :platform => :jruby
-    else
+    when 'sqlite3'
       gem 'activerecord-jdbcsqlite3-adapter', '~> 1.1', :platform => :jruby
       gem 'jdbc-sqlite3', '~> 3.6', :platform => :jruby
     end
@@ -24,8 +24,9 @@ group :development, :test do
       gem 'mysql', '~> 2.8'
     when 'postgresql'
       gem 'pg', '~> 0.10'
-    else
+    when 'sqlite3'
       gem 'sqlite3', '~> 1.3'
     end
   end
+  gem "cancan" if ENV["AUTHORIZATION_ADAPTER"] == "cancan"
 end

@@ -22,9 +22,9 @@ describe "RailsAdmin Basic Edit" do
     end
 
     it "should show non-required fields as \"Optional\"" do
-      response.body.should contain(/Position\n\s*Optional/)
-      response.body.should contain(/Born on\n\s*Optional/)
-      response.body.should contain(/Notes\n\s*Optional/)
+      response.body.should have_tag(".player_position .help", :content => "Optional")
+      response.body.should have_tag(".player_born_on .help", :content => "Optional")
+      response.body.should have_tag(".player_notes .help", :content => "Optional")
     end
   end
 
@@ -49,7 +49,7 @@ describe "RailsAdmin Basic Edit" do
     before(:each) do
       @teams = []
       (1..3).each do |number|
-        @teams << RailsAdmin::AbstractModel.new("Team").create(:league_id => rand(99999), :division_id => rand(99999), :name => "Team #{number}", :manager => "Manager #{number}", :founded => 1869 + rand(130), :wins => (wins = rand(163)), :losses => 162 - wins, :win_percentage => ("%.3f" % (wins.to_f / 162)).to_f)
+        @teams << RailsAdmin::AbstractModel.new("Team").create(:division_id => rand(99999), :name => "Team #{number}", :manager => "Manager #{number}", :founded => 1869 + rand(130), :wins => (wins = rand(163)), :losses => 162 - wins, :win_percentage => ("%.3f" % (wins.to_f / 162)).to_f)
       end
       @player = RailsAdmin::AbstractModel.new("Player").create(:team_id => rand(99999), :number => 1, :name => "Player 1")
       get rails_admin_edit_path(:model_name => "player", :id => @player.id)
@@ -67,7 +67,7 @@ describe "RailsAdmin Basic Edit" do
   describe "edit with has-and-belongs-to-many association" do
     before(:each) do
       teams = (1..3).collect do |number|
-        RailsAdmin::AbstractModel.new("Team").create(:league_id => rand(99999), :division_id => rand(99999), :name => "Team #{number}", :manager => "Manager #{number}", :founded => 1869 + rand(130), :wins => (wins = rand(163)), :losses => 162 - wins, :win_percentage => ("%.3f" % (wins.to_f / 162)).to_f)
+        RailsAdmin::AbstractModel.new("Team").create(:division_id => rand(99999), :name => "Team #{number}", :manager => "Manager #{number}", :founded => 1869 + rand(130), :wins => (wins = rand(163)), :losses => 162 - wins, :win_percentage => ("%.3f" % (wins.to_f / 162)).to_f)
       end
       fan = RailsAdmin::AbstractModel.new("Fan").create(:name => "Fan 1")
       fan.teams << teams[0]
@@ -79,12 +79,10 @@ describe "RailsAdmin Basic Edit" do
     end
 
     it "should show associated objects" do
-      response.body.should have_tag "div.manySelector select.firstSelect" do |many|
-        many.should have_tag("option", :content => "Team 2")
-        many.should have_tag("option", :content => "Team 3")
-      end
-      response.body.should have_tag "div.manySelector select#associations_teams" do |assoc|
-        assoc.should have_tag("option", :content => "Team 1")
+      response.body.should have_tag "#associations_teams" do |select|
+        select[0].should have_selector 'option[selected="selected"]'
+        select[1].should_not have_selector 'option[selected="selected"]'
+        select[2].should_not have_selector 'option[selected="selected"]'
       end
     end
   end
@@ -105,7 +103,7 @@ describe "RailsAdmin Basic Edit" do
 
       @teams = []
       (1..3).each do |number|
-        @teams << RailsAdmin::AbstractModel.new("Team").create(:league_id => rand(99999), :division_id => rand(99999), :manager => "Manager #{number}", :founded => 1869 + rand(130), :wins => (wins = rand(163)), :losses => 162 - wins, :win_percentage => ("%.3f" % (wins.to_f / 162)).to_f)
+        @teams << RailsAdmin::AbstractModel.new("Team").create(:division_id => rand(99999), :manager => "Manager #{number}", :founded => 1869 + rand(130), :wins => (wins = rand(163)), :losses => 162 - wins, :win_percentage => ("%.3f" % (wins.to_f / 162)).to_f)
       end
 
       get rails_admin_edit_path(:model_name => "player", :id => @player.id)

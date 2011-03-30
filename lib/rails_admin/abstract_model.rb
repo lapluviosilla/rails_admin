@@ -77,15 +77,18 @@ module RailsAdmin
 
     end
 
-    attr_accessor :model
-
     def initialize(model)
       model,orm_adapter = *self.class.lookup(model)
       @model = model
+      @model_name = model.name
       self.extend(GenericSupport) 
       self.extend(orm_adapter) if orm_adapter
-    end 
-    
+    end
+
+    def model
+      @model_name.constantize
+    end
+
     private
     def self.superclasses(klass)
       superclasses = []
