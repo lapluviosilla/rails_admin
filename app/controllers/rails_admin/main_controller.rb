@@ -329,8 +329,8 @@ module RailsAdmin
       # external filter
       options.merge!(other)
 
-      associations = @model_config.list.visible_fields.select {|f| f.association? && !f.polymorphic? }.map {|f| f.association[:name] }
-      options.merge!(:include => associations) unless associations.empty?
+      associations = @model_config.list.visible_fields.select {|f| f.association? && !f.polymorphic? }.map {|f| f.association.name }
+      #options.merge!(:include => associations) unless associations.empty?
 
       if params[:all]
         options.merge!(:limit => per_page * 2)

@@ -49,12 +49,12 @@ module RailsAdmin
 
         # Reader for the association's child key
         def child_key
-          association[:child_key].first
+          association.key
         end
 
         # Reader for the association's child key array
         def child_keys
-          association[:child_key]
+          [association.key]
         end
 
         # Reader for validation errors of the bound object
@@ -69,7 +69,7 @@ module RailsAdmin
 
         # Reader whether this is a polymorphic association
         def polymorphic?
-          association[:options][:polymorphic]
+          association.polymorphic?
         end
 
         # Reader for the association's value unformatted

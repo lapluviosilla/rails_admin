@@ -8,20 +8,20 @@ module RailsAdmin
       mattr_reader :default_factory
       @@default_factory = lambda do |parent, properties, fields|
         # Belongs to association need special handling as they also include a column in the table
-        if association = parent.abstract_model.belongs_to_associations.find {|a| a[:child_key].first.to_s == properties[:name].to_s}
-          type = association[:options][:polymorphic] ? :polymorphic_association : :belongs_to_association
+        if association = parent.abstract_model.belongs_to_associations.find {|a| a.key == properties[:name].to_s}
+          type = association.polymorphic? ? :polymorphic_association : :belongs_to_association
           fields << RailsAdmin::Config::Fields::Types.load(type).new(parent, properties[:name], properties, association)
           # Polymorphic associations type column should be hidden
-          if association[:options][:polymorphic]
-            props = parent.abstract_model.properties.find {|p| association[:options][:foreign_type] == p[:name].to_s }
-            RailsAdmin::Config::Fields.default_factory.call(parent, props, fields)
-            fields.last.hide
-          end
+#          if association.polymorphic?
+#            props = parent.abstract_model.properties.find {|p| association.class_name == p[:name].to_s }
+#            RailsAdmin::Config::Fields.default_factory.call(parent, props, fields)
+#            fields.last.hide
+#          end
         # If it's an association
-        elsif properties.has_key?(:parent_model) && :belongs_to != properties[:type]
+        elsif properties.has_key?(:parent_model) && properties[:type] && :belongs_to != properties[:type]
           fields << RailsAdmin::Config::Fields::Types.load("#{properties[:type]}_association").new(parent, properties[:name], properties)
         # If it's a concrete column
-        elsif !properties.has_key?(:parent_model)
+        elsif !properties.has_key?(:parent_model) && properties[:type]
           fields << RailsAdmin::Config::Fields::Types.load(properties[:type]).new(parent, properties[:name], properties)
         end
       end

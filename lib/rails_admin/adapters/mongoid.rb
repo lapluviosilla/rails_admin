@@ -2,6 +2,8 @@ require 'mongoid'
 require 'rails_admin/config/sections/list'
 require 'rails_admin/abstract_object'
 require 'rails_admin/adapters/abstract_object_mongoid'
+require 'mongoid/relations'
+require 'mongoid/relations/referenced/in'
 
 module RailsAdmin
   module Adapters
@@ -96,7 +98,7 @@ module RailsAdmin
 
       def belongs_to_associations
         associations.select do |association|
-          association[:type] == :belongs_to
+          association[:relation] == ::Mongoid::Relations::Referenced::In
         end
       end
 
@@ -110,7 +112,7 @@ module RailsAdmin
 
       def associations
         if true
-          []
+          model.relations.values
         else
           model.reflect_on_all_associations.select { |association| not association.options[:polymorphic] }.map do |association|
             {
@@ -142,10 +144,12 @@ module RailsAdmin
                        :float
                      when "Array"
                        :string
-                    when "Date"
+                     when "Date"
                        :datetime
                      when "BSON::ObjectId"
                        :object_id
+                     when "Object"
+                       :belongs_to_association
                      else
                        raise "Need to map field #{field.type.to_s} for field name #{name} in #{model.inspect}"
                      end
