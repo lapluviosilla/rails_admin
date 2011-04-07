@@ -162,8 +162,8 @@ module RailsAdmin
     def bulk_destroy
       @authorization_adapter.authorize(:bulk_destroy, @abstract_model) if @authorization_adapter
 
-      scope = @authorization_adapter && @authorization_adapter.query(params[:action].to_sym, @abstract_model)
-      @destroyed_objects = @abstract_model.destroy(params[:bulk_ids], scope)
+      #scope = @authorization_adapter && @authorization_adapter.query(params[:action].to_sym, @abstract_model)
+      @destroyed_objects = @abstract_model.destroy(params[:bulk_ids])
 
       @destroyed_objects.each do |object|
         message = "Destroyed #{@model_config.with(:object => object).object_label}"
@@ -187,9 +187,9 @@ module RailsAdmin
     private
 
     def get_bulk_objects
-      scope = @authorization_adapter && @authorization_adapter.query(params[:action].to_sym, @abstract_model)
+      #scope = @authorization_adapter && @authorization_adapter.query(params[:action].to_sym, @abstract_model)
       @bulk_ids = params[:bulk_ids]
-      @bulk_objects = @abstract_model.get_bulk(@bulk_ids, scope)
+      @bulk_objects = @abstract_model.get_bulk(@bulk_ids)
 
       not_found unless @bulk_objects
     end
