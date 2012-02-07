@@ -13,7 +13,7 @@ module RailsAdmin
         excluded_models << ['History']
 
         # orig regexp -- found 'class' even if it's within a comment or a quote
-        filenames = Dir.glob(Rails.application.paths.app.models.collect { |path| File.join(path, "**/*.rb") })
+        filenames = Dir.glob(Rails.application.paths['app/models'].collect { |path| File.join(path, "**/*.rb") })
         class_names = []
         filenames.each do |filename|
           class_names += File.read(filename).scan(/class ([\w\d_\-:]+)/).flatten.map(&:to_sym)
